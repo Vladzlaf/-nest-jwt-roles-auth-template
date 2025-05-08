@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: prometheusdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prometheus-api
+    restart: always
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/prometheusdb
+      - APP_PORT=3000
+      - RT_SECRET=rt-secret
+      - AT_SECRET=at-secret
+      - RT_EXPIRES=7d
+      - AT_EXPIRES=15m
+      - APP_LANGUAGE=en
+
+volumes:
+  postgres_data:

@@ -1,0 +1,70 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CONSULTANT @map("consultant")
+  CLIENT     @map("client")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  password        String?
+  fullName        String
+  occupation      String?
+  location        String?
+  languages       String[]
+  portfolioLink   String?
+  aboutInfo       String?
+  keySkills       String[]
+  avatarUrl       String?
+  isVerified      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  role            Role
+  otps            Otp[]     @relation("UserOtps")
+  hashedRt        String?
+  updatedAt       DateTime  @updatedAt
+}
+
+model Otp {
+  id           String      @id @default(uuid()) @db.Uuid
+  code         String
+  email        String
+  isUsed       Boolean     @default(false)
+  expiresAt    DateTime
+  user      User?    @relation("UserOtps", fields: [userId], references: [id])
+  consultant     Consultant?   @relation("ConsultantOtps", fields: [consultantId], references: [id])
+  userId    String?  @db.Uuid
+  consultantId   String?  @db.Uuid
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([email])
+}
+
+model Consultant {
+  id        String   @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  password        String?
+  fullName        String
+  occupation      String?
+  location        String?
+  languages       String[]
+  portfolioLink   String?
+  aboutInfo       String?
+  keySkills       String[]
+  avatarUrl       String?
+  isVerified      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  role            Role      @default(CONSULTANT)
+  otps            Otp[]     @relation("ConsultantOtps")
+  hashedRt        String?
+  updatedAt       DateTime  @updatedAt
+}
